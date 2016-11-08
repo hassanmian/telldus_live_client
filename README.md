@@ -1,4 +1,4 @@
-# telldus_live_client
+# Telldus Live Client
 Python Wrapper for Telldus Live
 
 

@@ -26,8 +26,31 @@ class TelldusLiveClient(object):
         response = self.do_request('devices/list', {'supportedMethods': self.SUPPORTED_METHODS})
         return response['device']
 
+    def get_device_state(self, device_id):
+        response = self.do_request('device/info', {'id': device_id, 'supportedMethods': self.SUPPORTED_METHODS})
+        return int(response['state'])
+
     def update_device_state(self, device_id, tellstick_state, _value=None):
         response = self.do_request('device/command', {'id': device_id, 'method': tellstick_state, 'value': _value})
+        return response
+
+    def toggle_device_state(self, device_id):
+        state = self.get_device_state(device_id)
+
+        if state == self.TELLSTICK_TURNON:
+            self.update_device_state(device_id=device_id, tellstick_state=self.TELLSTICK_TURNOFF)
+        elif state == self.TELLSTICK_TURNOFF:
+            self.update_device_state(device_id=device_id, tellstick_state=self.TELLSTICK_TURNON)
+
+    def get_phones(self):
+        response = self.do_request('user/listPhones', {})
+        return response['phone']
+
+    def send_push(self, phone_id, message):
+        response = self.do_request('user/sendPushTest', {'phoneId': phone_id, 'message': message})
+        return response
+
+
 
     def do_request(self, method, params):
         consumer = oauth.OAuthConsumer(self.PUBLIC_KEY, self.PRIVATE_KEY)
@@ -44,7 +67,6 @@ class TelldusLiveClient(object):
         conn = httplib.HTTPConnection('api.telldus.com')
         url_encoded_params = urllib.urlencode(params)
         _uri = '/json/{}?{}'.format(method, url_encoded_params)
-
         conn.request('GET', _uri, headers=headers)
         response = conn.getresponse()
         return json.load(response)
